@@ -374,7 +374,7 @@ class GameScreen:
     def _draw_status(self):
         s  = self.screen
         sf = _font(15, bold=True)
-        hf = _font(12)
+        hf = _font(14, bold=True)  # <-- Changed to be thicker and clearer!
 
         if self.tutor.is_terminal(self.state):
             msg = self.tutor.result_message(self.state)
