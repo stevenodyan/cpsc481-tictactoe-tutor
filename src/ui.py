@@ -369,7 +369,7 @@ class GameScreen:
         for y in range(self.game.v + 1):
             py = TOP + y * CELL
             pygame.draw.line(s, BORDER,
-                             (SIDE, py), (SIDE + self.game.h * CELL), 1)
+                             (SIDE, py), (SIDE + self.game.h * CELL, py), 1)
 
     def _draw_status(self):
         s  = self.screen
