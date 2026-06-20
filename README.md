@@ -45,3 +45,6 @@ The evaluation function scores a position by summing weighted factors for the cu
 
 ## Planned Evaluation
 We will compare the tutor's recommended moves against random legal moves on board sizes such as 4×4 and 5×5, measuring win rate and tracking how alpha-beta pruning affects the number of board states searched.
+
+
+# Test
