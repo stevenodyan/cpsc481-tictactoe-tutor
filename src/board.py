@@ -1,71 +1,104 @@
-class Board:
-    def __init__(self, rows=5, cols=5, win_length=4):
-        self.rows = rows
-        self.cols = cols
-        self.win_length = win_length
-        self.grid = [["" for _ in range(cols)] for _ in range(rows)]
+# Board/game structure adapted from the provided Python TicTacToe implementation.
+# - Kept only the m x n TicTacToe functionality needed for our tutor.
+# - Removed unrelated textbook game classes.
+# - Changed default settings to a larger board.
+# - Our project-specific heuristic evaluation is implemented in evaluation.py.
+# - Our tutor move recommendation logic is implemented in tutor.py.
+from collections import namedtuple
 
-    def make_move(self, row, col, player):
-        if not self.is_valid_move(row, col):
-            return False
-        self.grid[row][col] = player
-        return True
+GameState = namedtuple("GameState", "to_move, utility, board, moves")
 
-    def undo_move(self, row, col):
-        self.grid[row][col] = ""
 
-    def is_valid_move(self, row, col):
-        return (
-            0 <= row < self.rows
-            and 0 <= col < self.cols
-            and self.grid[row][col] == ""
+class TicTacToe:
+    """
+    m x n Tic-Tac-Toe based on the AIMA textbook code.
+    h = board width
+    v = board height
+    k = number in a row needed to win
+    """
+
+    def __init__(self, h=5, v=5, k=4):
+        self.h = h
+        self.v = v
+        self.k = k
+
+        moves = [(x, y) for x in range(1, h + 1)
+                 for y in range(1, v + 1)]
+
+        self.initial = GameState(
+            to_move="X",
+            utility=0,
+            board={},
+            moves=moves
         )
 
-    def get_legal_moves(self):
-        moves = []
-        for r in range(self.rows):
-            for c in range(self.cols):
-                if self.grid[r][c] == "":
-                    moves.append((r, c))
-        return moves
+    def actions(self, state):
+        return state.moves
 
-    def is_full(self):
-        return len(self.get_legal_moves()) == 0
+    def result(self, state, move):
+        if move not in state.moves:
+            return state
 
-    def check_winner(self):
-        directions = [
-            (0, 1),   # horizontal
-            (1, 0),   # vertical
-            (1, 1),   # diagonal down-right
-            (1, -1),  # diagonal down-left
-        ]
+        board = state.board.copy()
+        board[move] = state.to_move
 
-        for r in range(self.rows):
-            for c in range(self.cols):
-                player = self.grid[r][c]
+        moves = list(state.moves)
+        moves.remove(move)
 
-                if player == "":
-                    continue
+        next_player = "O" if state.to_move == "X" else "X"
 
-                for dr, dc in directions:
-                    if self._check_direction(r, c, dr, dc, player):
-                        return player
+        return GameState(
+            to_move=next_player,
+            utility=self.compute_utility(board, move, state.to_move),
+            board=board,
+            moves=moves
+        )
 
-        return None
+    def utility(self, state, player):
+        return state.utility if player == "X" else -state.utility
 
-    def _check_direction(self, row, col, dr, dc, player):
-        for i in range(self.win_length):
-            r = row + dr * i
-            c = col + dc * i
+    def terminal_test(self, state):
+        return state.utility != 0 or len(state.moves) == 0
 
-            if not (0 <= r < self.rows and 0 <= c < self.cols):
-                return False
+    def to_move(self, state):
+        return state.to_move
 
-            if self.grid[r][c] != player:
-                return False
+    def display(self, state):
+        board = state.board
 
-        return True
+        for y in range(1, self.v + 1):
+            row = []
+            for x in range(1, self.h + 1):
+                row.append(board.get((x, y), "."))
+            print(" ".join(row))
 
-    def print_board(self):
-        for row in self.grid:
-            print(row)
+    def compute_utility(self, board, move, player):
+        if (
+            self.k_in_row(board, move, player, (0, 1)) or
+            self.k_in_row(board, move, player, (1, 0)) or
+            self.k_in_row(board, move, player, (1, -1)) or
+            self.k_in_row(board, move, player, (1, 1))
+        ):
+            return 1 if player == "X" else -1
+
+        return 0
+
+    def k_in_row(self, board, move, player, delta_x_y):
+        delta_x, delta_y = delta_x_y
+        x, y = move
+        count = 0
+
+        while board.get((x, y)) == player:
+            count += 1
+            x += delta_x
+            y += delta_y
+
+        x, y = move
+
+        while board.get((x, y)) == player:
+            count += 1
+            x -= delta_x
+            y -= delta_y
+
+        count -= 1
+        return count >= self.k
