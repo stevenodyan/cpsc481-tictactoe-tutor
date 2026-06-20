@@ -208,6 +208,7 @@ class GameScreen:
         self.state       = game.initial
         self._hint_move  = None
         self._hint_text  = ""
+        self._feedback_text = ""
         self._hovered    = None
         self._ai_pending = False
         self._ai_delay   = 0
@@ -264,6 +265,11 @@ class GameScreen:
             return
         cell = self._cell_at(pos)
         if cell and cell in self.state.moves:
+            # 1. Get Tutor feedback BEFORE applying the move
+            evaluation = self.tutor.evaluate_player_move(self.state, cell)
+            self._feedback_text = f"Tutor: {evaluation}"
+            
+            # 2. Apply the move normally
             self._hint_move = None
             self._hint_text = ""
             self.state = self.tutor.apply_move(self.state, cell)
@@ -363,7 +369,7 @@ class GameScreen:
         for y in range(self.game.v + 1):
             py = TOP + y * CELL
             pygame.draw.line(s, BORDER,
-                             (SIDE, py), (SIDE + self.game.h * CELL, py), 1)
+                             (SIDE, py), (SIDE + self.game.h * CELL), 1)
 
     def _draw_status(self):
         s  = self.screen
@@ -385,10 +391,15 @@ class GameScreen:
         t = sf.render(msg, True, col)
         s.blit(t, t.get_rect(centerx=self.W // 2, centery=TOP // 2))
 
+        # Show Hint if it exists, otherwise show Tutor Feedback
         if self._hint_text:
             ht = hf.render(self._hint_text, True, HINT_CLR)
             s.blit(ht, ht.get_rect(centerx=self.W // 2,
-                                    centery=self.H - BOT // 2 + 14))
+                                   centery=self.H - BOT // 2 + 14))
+        elif self._feedback_text:
+            ft = hf.render(self._feedback_text, True, SUCCESS)
+            s.blit(ft, ft.get_rect(centerx=self.W // 2,
+                                   centery=self.H - BOT // 2 + 14))
 
     def _draw_controls(self):
         s   = self.screen
