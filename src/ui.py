@@ -23,7 +23,6 @@ CELL_HOVER  = (44,  63,  92)
 FONT_NAME = "Helvetica"
 FPS = 60
 
-
 def _font(size, bold=False):
     return pygame.font.SysFont(FONT_NAME, size, bold=bold)
 
@@ -117,45 +116,71 @@ class ConfigScreen:
         t = title_f.render("New Game", True, WHITE)
         s.blit(t, t.get_rect(centerx=cx, top=y)); y += 52
 
-        # Input fields
-        for i, f in enumerate(self._fields):
-            lbl = label_f.render(f["label"], True, SUBTLE)
-            s.blit(lbl, (40, y)); y += 22
+        # --- 1. Side-by-side Width & Height ---
+        f0 = self._fields[0] # Width
+        lbl0 = label_f.render(f0["label"], True, SUBTLE)
+        s.blit(lbl0, (40, y))
+        r0 = pygame.Rect(40, y + 22, (self.W - 90) // 2, 40)
+        self._rects["field_0"] = r0
 
-            rect = pygame.Rect(40, y, self.W - 80, 40)
-            self._rects[f"field_{i}"] = rect
+        f1 = self._fields[1] # Height
+        lbl1 = label_f.render(f1["label"], True, SUBTLE)
+        s.blit(lbl1, (cx + 5, y))
+        r1 = pygame.Rect(cx + 5, y + 22, (self.W - 90) // 2, 40)
+        self._rects["field_1"] = r1
+
+        # Draw the Width and Height boxes
+        for i, rect, f in [(0, r0, f0), (1, r1, f1)]:
             border_col = ACCENT if f["active"] else BORDER
             pygame.draw.rect(s, PANEL, rect, border_radius=8)
             pygame.draw.rect(s, border_col, rect, 2, border_radius=8)
-
             val_surf = input_f.render(f["val"], True, WHITE)
             s.blit(val_surf, val_surf.get_rect(midleft=(rect.x + 12, rect.centery)))
-            y += 52
 
-        # Player radio
+        y += 74
+
+        # --- 2. Win Length (k) ---
+        f2 = self._fields[2]
+        lbl2 = label_f.render(f2["label"], True, SUBTLE)
+        s.blit(lbl2, (40, y)); y += 22
+        r2 = pygame.Rect(40, y, self.W - 80, 40)
+        self._rects["field_2"] = r2
+        border_col = ACCENT if f2["active"] else BORDER
+        pygame.draw.rect(s, PANEL, r2, border_radius=8)
+        pygame.draw.rect(s, border_col, r2, 2, border_radius=8)
+        val2 = input_f.render(f2["val"], True, WHITE)
+        s.blit(val2, val2.get_rect(midleft=(r2.x + 12, r2.centery)))
+        
+        y += 52
+
+        # --- 3. Player radio (Segmented Button Style) ---
         lbl = label_f.render("Play as", True, SUBTLE)
         s.blit(lbl, (40, y)); y += 24
 
-        for val, col in (("X", X_CLR), ("O", O_CLR)):
-            r = pygame.Rect(40 if val == "X" else 120, y, 60, 34)
+        bw = (self.W - 80) // 2  # Button width (half the screen width)
+        for i, (val, col) in enumerate((("X", X_CLR), ("O", O_CLR))):
+            r = pygame.Rect(40 + i*bw, y, bw, 36)
             self._rects[f"radio_{val}"] = r
             active = self._player == val
-            bg = (*col[:3], 50)
             fill = col if active else PANEL
-            pygame.draw.rect(s, fill, r, border_radius=8)
-            pygame.draw.rect(s, col, r, 2, border_radius=8)
+            
+            # Round the outer corners to make it look like a single pill
+            rad_kwargs = {'border_top_left_radius': 8, 'border_bottom_left_radius': 8} if i == 0 else \
+                         {'border_top_right_radius': 8, 'border_bottom_right_radius': 8}
+            
+            pygame.draw.rect(s, fill, r, **rad_kwargs)
+            pygame.draw.rect(s, col, r, 2, **rad_kwargs)
             txt = btn_f.render(val, True, BG if active else col)
             s.blit(txt, txt.get_rect(center=r.center))
-        y += 52
+        y += 56
 
-        # Error
+        # Error text
         if self._error:
             err = err_f.render(self._error, True, O_CLR)
             s.blit(err, err.get_rect(centerx=cx, top=y))
-        y += 24
 
-        # Start button
-        btn = pygame.Rect(40, y, self.W - 80, 46)
+        # --- 4. Start button (Anchored near the bottom) ---
+        btn = pygame.Rect(40, self.H - 80, self.W - 80, 46) 
         self._rects["start"] = btn
         mx, my = pygame.mouse.get_pos()
         hover = btn.collidepoint(mx, my)
@@ -173,7 +198,6 @@ CELL  = 80
 TOP   = 70
 BOT   = 70
 SIDE  = 40
-
 
 class GameScreen:
     def __init__(self, screen, game, tutor, player_side):
@@ -234,7 +258,6 @@ class GameScreen:
         if self._rects["hint"].collidepoint(pos):
             self._get_hint()
             return
-            return
 
         # Board cell
         if self.state.to_move != self.player_side:
@@ -253,11 +276,11 @@ class GameScreen:
 
     def _do_ai_move(self):
         self._thinking = True
-        def run():
+        def run_ai():
             move, _ = self.tutor.recommend(self.state)
             self._pending_move = move
             self._thinking = False
-        t = threading.Thread(target=run, daemon=True)
+        t = threading.Thread(target=run_ai, daemon=True)
         t.start()
         t.join()  # small board — fast enough; keeps code simple
         self.state = self.tutor.apply_move(self.state, self._pending_move)
