@@ -196,7 +196,7 @@ class ConfigScreen:
 
 CELL  = 80
 TOP   = 70
-BOT   = 70
+BOT   = 110
 SIDE  = 40
 
 class GameScreen:
