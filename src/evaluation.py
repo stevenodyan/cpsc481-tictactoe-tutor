@@ -41,7 +41,7 @@ def _score_lines(game, board, player, k):
     for x in range(1, game.h + 1):
         for y in range(1, game.v + 1):
             for dx, dy in DIRECTIONS:
-                length, open_ends = _scan_line(board, player, x, y, dx, dy, k)
+                length, open_ends = _scan_line(game, board, player, x, y, dx, dy, k)
                 if length >= 2 and open_ends > 0:
                     score += 10 * length * length  # sequence² bonus
                     score += 50 * open_ends         # open line bonus
@@ -49,7 +49,7 @@ def _score_lines(game, board, player, k):
     return score
 
 
-def _scan_line(board, player, x, y, dx, dy, k):
+def _scan_line(game, board, player, x, y, dx, dy, k):
     """
     Starting at (x,y) in direction (dx,dy), count consecutive player marks
     and open ends. Returns (length, open_ends) or (0, 0) if not player's mark.
@@ -59,7 +59,7 @@ def _scan_line(board, player, x, y, dx, dy, k):
 
     length = 0
     cx, cy = x, y
-    while board.get((cx, cy)) == player:
+    while 1 <= cx <= game.h and 1 <= cy <= game.v and board.get((cx, cy)) == player:
         length += 1
         cx += dx
         cy += dy
@@ -69,11 +69,11 @@ def _scan_line(board, player, x, y, dx, dy, k):
 
     open_ends = 0
     # check end of sequence
-    if board.get((cx, cy)) is None:
+    if 1 <= cx <= game.h and 1 <= cy <= game.v and board.get((cx, cy)) is None:
         open_ends += 1
     # check before start
     bx, by = x - dx, y - dy
-    if board.get((bx, by)) is None:
+    if 1 <= bx <= game.h and 1 <= by <= game.v and board.get((bx, by)) is None:
         open_ends += 1
 
     return length, open_ends
