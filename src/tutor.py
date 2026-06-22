@@ -29,6 +29,8 @@ class Tutor:
         Acts as the AI Tutor. Compares the user's chosen move against the optimal
         Minimax evaluation and returns text feedback.
         """
+        if chosen_move not in state.moves:
+            return "Invalid move."
         player = state.to_move
         depth = max(3, 7 - max(self.game.h, self.game.v))
         
