@@ -3,7 +3,7 @@
 An AI tutor for m×n Tic-Tac-Toe with configurable board size and win condition. The tutor recommends moves using depth-limited minimax with alpha-beta pruning and a heuristic evaluation function.
 
 ## Team Members
-- Steven Odyan
+- Steven Sanusi
 - Kevin Fuentes
 - Gilbert Cervantes
 
