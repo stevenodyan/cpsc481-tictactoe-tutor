@@ -9,7 +9,7 @@ An AI tutor for m×n Tic-Tac-Toe with configurable board size and win condition.
 
 ## Tech Stack
 - **Language:** Python 3
-- **GUI:** Tkinter (standard library)
+- **GUI:** pygame
 - **Testing:** pytest
 
 ## Setup & Run
@@ -46,3 +46,46 @@ The evaluation function scores a position by summing weighted factors for the cu
 ## Planned Evaluation
 We will compare the tutor's recommended moves against random legal moves on board sizes such as 4×4 and 5×5, measuring win rate and tracking how alpha-beta pruning affects the number of board states searched.
 
+## Code Layout
+
+cpsc481-tictactoe-tutor/
+├── README.md
+├── requirements.txt
+├── main.py
+└── src/
+    ├── __init__.py
+    ├── board.py
+    ├── ai.py
+    ├── evaluation.py
+    ├── tutor.py
+    ├── ui.py
+    └── performance_eval.py
+
+README.md
+Explains the project, setup instructions, how to run the program, and the code layout.
+requirements.txt
+Lists the Python libraries needed to run the project. The main external library is Pygame.
+
+main.py
+Entry point of the program. It starts the Pygame application.
+
+src/__init__.py
+Marks the src folder as a Python package.
+
+src/board.py
+Contains the m×n Tic-Tac-Toe game logic. It stores the board state, legal moves, result function, terminal test, and win checking for k pieces in a row.
+
+src/ai.py
+Contains the AI move-selection logic. It uses depth-limited minimax search, alpha-beta pruning, and caching to choose moves.
+
+src/evaluation.py
+Contains the heuristic evaluation function used by the AI to score non-terminal board states. It considers wins/losses, opponent threats, open sequences, and open-ended lines.
+
+src/tutor.py
+Contains the tutor logic. It recommends moves, compares the user’s move against the AI’s best move, and returns feedback such as “Excellent,” “Good move,” “Mistake,” or “Blunder.”
+
+src/ui.py
+Contains the Pygame graphical interface. It handles the configuration screen, board rendering, mouse clicks, Hint button, New Game button, AI move display, and tutor feedback display.
+
+src/performance_eval.py
+Separate evaluation script used to compare the tutor’s recommended moves against randomly selected legal moves across different board sizes.
